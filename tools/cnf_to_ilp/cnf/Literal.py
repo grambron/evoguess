@@ -1,4 +1,4 @@
-class Variable:
+class Literal:
     name: str
     sign: bool
 

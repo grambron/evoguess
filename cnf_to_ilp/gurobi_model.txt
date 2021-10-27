@@ -1,4 +1,0 @@
-constraint_0: 0  + x_1  + x_2  >= 1
-constraint_1: 0  + (1 - x_1)  + x_2  >= 1
-constraint_2: 0  + x_2  + (1 - x_1)  >= 1
-constraint_3: 0  + (1 - x_1)  + (1 - x_2)  >= 1

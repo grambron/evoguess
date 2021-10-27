@@ -1,7 +1,7 @@
 import gurobipy as gp
 from gurobipy import GRB
 
-from cnf_to_ilp.cnf.CnfModel import CnfModel
+from tools.cnf_to_ilp.cnf.CnfModel import CnfModel
 
 
 class GurobiModel:
@@ -15,7 +15,7 @@ class GurobiModel:
         counter = 0
         for equation in cnf_model.equations:
             expr = 0
-            for variable in equation.variables:
+            for variable in equation.literals:
                 name = f"x_{variable.name}"
                 if name in self.variables:
                     model_var = self.variables[name]
@@ -34,7 +34,7 @@ class GurobiModel:
         with open('gurobi_model.txt', 'w') as file:
             for equation in self.cnf_model.equations:
                 file.write(f"constraint_{counter}: 0 ")
-                for variable in equation.variables:
+                for variable in equation.literals:
                     name = f"x_{variable.name}"
                     if variable.sign:
                         file.write(f" + {name} ")

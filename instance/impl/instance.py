@@ -47,7 +47,7 @@ class Instance:
         return side_trim(backdoor.get_mask(), at_start=False)
 
     def get_assumptions(self, backdoor, values):
-        variables = backdoor.variables()
+        variables = backdoor.literals()
 
         if backdoor.base > 2:
             raise Exception('Haven\'t realised')
