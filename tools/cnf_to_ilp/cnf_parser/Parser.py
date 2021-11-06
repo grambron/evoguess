@@ -34,3 +34,10 @@ def parse(filename: str) -> CnfModel:
                 model.add_equation(parse_line(line))
 
     return model
+
+
+def parse_backdoor(backdoor_file: str) -> list[str]:
+    with open(backdoor_file) as file:
+        backdoor = file.readline().split()
+
+    return backdoor

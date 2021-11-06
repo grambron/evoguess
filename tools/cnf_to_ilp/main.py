@@ -1,7 +1,14 @@
-from tools.cnf_to_ilp.cnf_parser.Parser import parse
+from tools.cnf_to_ilp.cnf_parser.Parser import parse, parse_backdoor
 from tools.cnf_to_ilp.ilp.GurobiModel import GurobiModel
 
 if __name__ == '__main__':
+    with open('solution.txt', 'w') as solution_file, open('gurobi_model.txt', 'w') as gurobi_file:
+        solution_file.seek(0)
+        gurobi_file.seek(0)
+        solution_file.truncate()
+        gurobi_file.truncate()
+
     cnf = parse('input.txt')
-    model = GurobiModel(cnf)
+    backdoor = parse_backdoor('backdoor.txt')
+    model = GurobiModel(cnf, backdoor)
     model.resolve()
