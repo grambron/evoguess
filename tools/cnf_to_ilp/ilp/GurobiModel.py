@@ -61,7 +61,7 @@ class GurobiModel:
             for var in self.model.getVars():
                 file.write(f"{var.x}, ")
         except AttributeError:
-            file.write("No solution\n")
+            file.write("No solution")
         file.write("\n")
 
     def choose_backdoor_variant(self):
@@ -91,7 +91,7 @@ class GurobiModel:
                 self.model.optimize()
                 self.print_solution(solution_file, backdoor_value, time.time() - start_time)
 
-                self.model.remove(self.model.getConstrs()[len(self.backdoor)::])
+                self.model.remove(self.model.getConstrs()[-len(self.backdoor)::])
                 self.model.reset()
 
     def print_model_with_backdoor_constraints(self, file, backdoor_value):
