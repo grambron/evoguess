@@ -74,20 +74,57 @@ class GurobiModel:
     def resolve(self):
         if GENERATION_MODE == "CERTAIN_NUMBER_OF_GENERATIONS":
             self.resolve_for_certain_number_of_generations()
-        else:
+        elif GENERATION_MODE == "ALL":
             self.resolve_for_all()
+        else:
+            raise ValueError("Illegal generation mode in settings.py")
 
-    def resolve_for_certain_backdoor(self, backdoor_value, gurobi_model_file, solution_file):
+    def resolve_for_certain_number_of_generations(self):
+        with open('solution.txt', 'a') as solution_file, open('gurobi_model.txt', 'a') as gurobi_model_file:
+            result_time = 0
+
+            for i in range(0, GENERATION_BACKDOOR_VALUES_COUNT):
+                if len(self.proceed_backdoor_values) == self.possible_backdoors_count:
+                    break
+
+                variant = self.choose_backdoor_variant()
+
+                backdoor_value = {}
+                for j in range(0, len(self.backdoor)):
+                    backdoor_value[self.backdoor[j]] = 1 if (variant & 2 ** j != 0) else 0
+
+                result_time += self.resolve_for_certain_backdoor_values(backdoor_value, gurobi_model_file,
+                                                                        solution_file)
+                if i == GENERATION_BACKDOOR_VALUES_COUNT - 1:
+                    solution_file.write(f"result time: {result_time}")
+
+    def resolve_for_all(self):
+        with open('solution.txt', 'a') as solution_file, open('gurobi_model.txt', 'a') as gurobi_model_file:
+            result_time = 0
+
+            for variant in range(0, self.possible_backdoors_count):
+                backdoor_value = {}
+                for i in range(0, len(self.backdoor)):
+                    backdoor_value[self.backdoor[i]] = 1 if (variant & 2 ** i != 0) else 0
+                result_time += self.resolve_for_certain_backdoor_values(backdoor_value, gurobi_model_file,
+                                                                        solution_file)
+                if variant == self.possible_backdoors_count - 1:
+                    solution_file.write(f"result time: {result_time}")
+
+    def resolve_for_certain_backdoor_values(self, backdoor_value, gurobi_model_file, solution_file) -> time:
         self.print_model_with_backdoor_constraints(gurobi_model_file, backdoor_value)
 
         self.add_backdoor_constraints(backdoor_value)
 
         start_time = time.time()
         self.model.optimize()
-        self.print_solution(solution_file, backdoor_value, time.time() - start_time)
+        time_for_certain_backdoor_values = time.time() - start_time
+        self.print_solution(solution_file, backdoor_value, time_for_certain_backdoor_values)
 
         self.model.remove(self.model.getConstrs()[-len(self.backdoor)::])
         self.model.reset()
+
+        return time_for_certain_backdoor_values
 
     def print_model_with_backdoor_constraints(self, file, backdoor_value):
         self.print_model(file)
@@ -108,32 +145,13 @@ class GurobiModel:
         counter = 0
         for variable in backdoor_value.items():
             name = f"x_{variable[0]}"
-            model_var = self.variables[name]
+            try:
+                model_var = self.variables[name]
+            except KeyError:
+                raise ValueError("More literals in backdoor than in formula")
             variable_value = variable[1]
             if variable_value == 0:
                 self.model.addConstr(model_var <= 0, f"backdoor_constraint_{counter}")
             else:
                 self.model.addConstr(model_var >= 1, f"backdoor_constraint_{counter}")
             counter += 1
-
-    def resolve_for_certain_number_of_generations(self):
-        with open('solution.txt', 'a') as solution_file, open('gurobi_model.txt', 'a') as gurobi_model_file:
-            for _ in range(0, GENERATION_BACKDOOR_VALUES_COUNT):
-                if len(self.proceed_backdoor_values) == self.possible_backdoors_count:
-                    break
-
-                variant = self.choose_backdoor_variant()
-
-                backdoor_value = {}
-                for i in range(0, len(self.backdoor)):
-                    backdoor_value[self.backdoor[i]] = 1 if (variant & 2 ** i != 0) else 0
-
-                self.resolve_for_certain_backdoor(backdoor_value, gurobi_model_file, solution_file)
-
-    def resolve_for_all(self):
-        with open('solution.txt', 'a') as solution_file, open('gurobi_model.txt', 'a') as gurobi_model_file:
-            for variant in range(0, self.possible_backdoors_count):
-                backdoor_value = {}
-                for i in range(0, len(self.backdoor)):
-                    backdoor_value[self.backdoor[i]] = 1 if (variant & 2 ** i != 0) else 0
-                self.resolve_for_certain_backdoor(backdoor_value, gurobi_model_file, solution_file)
