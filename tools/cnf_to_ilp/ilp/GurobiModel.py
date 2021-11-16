@@ -5,7 +5,7 @@ from gurobipy import GRB
 import time
 
 from tools.cnf_to_ilp.cnf.CnfModel import CnfModel
-from tools.cnf_to_ilp.ilp.settings import GENERATION_BACKDOOR_VALUES_COUNT
+from tools.cnf_to_ilp.ilp.settings import GENERATION_BACKDOOR_VALUES_COUNT, GENERATION_MODE
 
 
 class GurobiModel:
@@ -72,27 +72,22 @@ class GurobiModel:
         return current_variant
 
     def resolve(self):
-        with open('solution.txt', 'a') as solution_file, open('gurobi_model.txt', 'a') as gurobi_model_file:
-            for _ in range(0, GENERATION_BACKDOOR_VALUES_COUNT):
-                if len(self.proceed_backdoor_values) == self.possible_backdoors_count:
-                    break
+        if GENERATION_MODE == "CERTAIN_NUMBER_OF_GENERATIONS":
+            self.resolve_for_certain_number_of_generations()
+        else:
+            self.resolve_for_all()
 
-                variant = self.choose_backdoor_variant()
+    def resolve_for_certain_backdoor(self, backdoor_value, gurobi_model_file, solution_file):
+        self.print_model_with_backdoor_constraints(gurobi_model_file, backdoor_value)
 
-                backdoor_value = {}
-                for i in range(0, len(self.backdoor)):
-                    backdoor_value[self.backdoor[i]] = 1 if (variant & 2 ** i != 0) else 0
+        self.add_backdoor_constraints(backdoor_value)
 
-                self.print_model_with_backdoor_constraints(gurobi_model_file, backdoor_value)
+        start_time = time.time()
+        self.model.optimize()
+        self.print_solution(solution_file, backdoor_value, time.time() - start_time)
 
-                self.add_backdoor_constraints(backdoor_value)
-
-                start_time = time.time()
-                self.model.optimize()
-                self.print_solution(solution_file, backdoor_value, time.time() - start_time)
-
-                self.model.remove(self.model.getConstrs()[-len(self.backdoor)::])
-                self.model.reset()
+        self.model.remove(self.model.getConstrs()[-len(self.backdoor)::])
+        self.model.reset()
 
     def print_model_with_backdoor_constraints(self, file, backdoor_value):
         self.print_model(file)
@@ -120,3 +115,25 @@ class GurobiModel:
             else:
                 self.model.addConstr(model_var >= 1, f"backdoor_constraint_{counter}")
             counter += 1
+
+    def resolve_for_certain_number_of_generations(self):
+        with open('solution.txt', 'a') as solution_file, open('gurobi_model.txt', 'a') as gurobi_model_file:
+            for _ in range(0, GENERATION_BACKDOOR_VALUES_COUNT):
+                if len(self.proceed_backdoor_values) == self.possible_backdoors_count:
+                    break
+
+                variant = self.choose_backdoor_variant()
+
+                backdoor_value = {}
+                for i in range(0, len(self.backdoor)):
+                    backdoor_value[self.backdoor[i]] = 1 if (variant & 2 ** i != 0) else 0
+
+                self.resolve_for_certain_backdoor(backdoor_value, gurobi_model_file, solution_file)
+
+    def resolve_for_all(self):
+        with open('solution.txt', 'a') as solution_file, open('gurobi_model.txt', 'a') as gurobi_model_file:
+            for variant in range(0, self.possible_backdoors_count):
+                backdoor_value = {}
+                for i in range(0, len(self.backdoor)):
+                    backdoor_value[self.backdoor[i]] = 1 if (variant & 2 ** i != 0) else 0
+                self.resolve_for_certain_backdoor(backdoor_value, gurobi_model_file, solution_file)
