@@ -25,6 +25,15 @@ class FileWriterLogger(Logger):
         self.file.close()
 
 
+class ConsoleWriterLogger(Logger):
+
+    def write(self, data):
+        print(data)
+
+    def close(self):
+        pass
+
+
 class DisabledLogger(Logger):
 
     def write(self, data):
