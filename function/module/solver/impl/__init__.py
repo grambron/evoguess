@@ -1,7 +1,9 @@
 from . import pysat
+from .gurobi import Gurobi
 from .pysat import *
 
 solvers = {
+    Gurobi.slug: Gurobi,
     Cadical.slug: Cadical,
     Glucose3.slug: Glucose3,
     Glucose4.slug: Glucose4,
