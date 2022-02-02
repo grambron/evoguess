@@ -16,6 +16,12 @@ class GurobiILPClause:
     def __init__(self, model: gurobipy.Model):
         self.model = model
 
+        self.var_dict = {}
+        counter = 1
+        for var in model.getVars():
+            self.var_dict[var.VarName] = counter
+            counter += 1
+
 
 class GurobiILP:
     slug = 'gurobi_ilp'

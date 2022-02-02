@@ -12,22 +12,39 @@ class Gurobi(Solver):
         clauses.model.update()
         model = clauses.model.copy()
 
-        for assumption in assumptions:
-            if assumption > 0:
-                var = model.getVars()[assumption - 1]
-                model.addConstr(var >= 1, f"backdoor_assumption_{var}")
-                model.addConstr(var <= 1, f"backdoor_assumption_{var}_2")
-            else:
-                var = model.getVars()[abs(assumption) - 1]
-                model.addConstr(var <= 0, f"backdoor_assumption_{var}")
+        for constr in model.getConstrs():
+            row = model.getRow(constr)
+            rhs = constr.RHS
+            model.remove(constr)
 
-        model.optimize()
+            for i in range(row.size()):
+                var = row.getVar(i).VarName
+                var_index = clauses.var_dict[var]
 
-        statistics = {'time': model.Runtime}
+                if var_index in assumptions:
+                    rhs -= row.getCoeff(i)
+                    row.remove(var)
+                elif -var_index in assumptions:
+                    row.remove(var)
 
-        status_switcher = {
-            GRB.OPTIMAL: True,
-            GRB.INFEASIBLE: False,
-        }
+                # try:
+                if constr.sense == '>':
+                    model.addConstr(row > rhs)
+                elif constr.sense == '=':
+                    model.addConstr(row == rhs)
+                elif constr.sense == '<':
+                    model.addConstr(row < rhs)
+                elif constr.sense == '<=':
+                    model.addConstr(row <= rhs)
+                elif constr.sense == '>=':
+                    model.addConstr(row >= rhs)
 
-        return status_switcher.get(model.status), statistics, None
+            model.optimize()
+
+            statistics = {'time': model.Runtime}
+
+            status_switcher = {
+                GRB.OPTIMAL: True,
+                GRB.INFEASIBLE: False,
+            }
+            return status_switcher.get(model.status), statistics, None
