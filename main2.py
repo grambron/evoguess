@@ -15,7 +15,7 @@ if __name__ == '__main__':
             'size': 8, 'elites': 2,
             'slug': 'iterable:elitism',
             'limit': {
-                'value': '12:00:00',
+                'value': '00:00:10',
                 'slug': 'limit:walltime',
             },
             'selection': {
@@ -30,21 +30,21 @@ if __name__ == '__main__':
         },
         'output': {
             'slug': 'output:json',
-            'path': 'test/pvs_7_4',
+            'path': 'test/ilp',
         },
         'instance': {
-            'slug': 'instance',
-            'cnf': {
-                'slug': 'cnf',
-                'path': 'sorting/pancake_vs_selection/pancake_vs_selection_7_4.cnf'
+            'slug': 'ilp_instance',
+            'ilp': {
+                'slug': 'gurobi_ilp',
+                'path': 'ilp/input.lp'
             },
             'supbs': {
                 'slug': 'interval',
-                'start': 1, 'length': 28
+                'start': 1, 'length': 9
             },
             'input_set': {
                 'slug': 'interval',
-                'start': 1, 'length': 3244
+                'start': 1, 'length': 9
             }
         },
         'method': {
@@ -58,12 +58,12 @@ if __name__ == '__main__':
             }
         },
         'function': {
-            'slug': 'function:upgad',
+            'slug': 'function:gad_ilp',
             'solver': {
-                'slug': 'solver:pysat:g3'
+                'slug': 'solver:gurobi'
             },
             'measure': {
-                'slug': 'measure:propagations'
+                'slug': 'measure:time'
             },
             'max_n': 30
         },

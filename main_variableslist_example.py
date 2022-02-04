@@ -59,7 +59,7 @@ if __name__ == '__main__':
             }
         },
         'function': {
-            'slug': 'function:upgad',
+            'slug': 'function:gad',
             'solver': {
                 'slug': 'solver:pysat:g3'
             },

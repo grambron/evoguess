@@ -27,7 +27,6 @@ class Gurobi(Solver):
                 elif -var_index in assumptions:
                     row.remove(var)
 
-                # try:
                 if constr.sense == '>':
                     model.addConstr(row > rhs)
                 elif constr.sense == '=':
