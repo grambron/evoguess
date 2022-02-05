@@ -14,36 +14,37 @@ class Gurobi(Solver):
 
         for constr in model.getConstrs():
             row = model.getRow(constr)
+            row_copy = row.copy()
             rhs = constr.RHS
             model.remove(constr)
 
-            for i in range(row.size()):
-                var = row.getVar(i).VarName
-                var_index = clauses.var_dict[var]
+            # TODO: probable optimisation point
+            # old_vars =  list(map(lambda i: row.getVar(i), range(row.size())))
+            # coeffs = list(map(lambda i: row.getCoeff(i), range(row.size())))
+
+            for i in range(row_copy.size()):
+                var = row_copy.getVar(i)
+                var_index = clauses.var_dict[var.VarName]
 
                 if var_index in assumptions:
-                    rhs -= row.getCoeff(i)
+                    rhs -= row_copy.getCoeff(i)
                     row.remove(var)
                 elif -var_index in assumptions:
                     row.remove(var)
 
-                if constr.sense == '>':
-                    model.addConstr(row > rhs)
-                elif constr.sense == '=':
-                    model.addConstr(row == rhs)
-                elif constr.sense == '<':
-                    model.addConstr(row < rhs)
-                elif constr.sense == '<=':
-                    model.addConstr(row <= rhs)
-                elif constr.sense == '>=':
-                    model.addConstr(row >= rhs)
+            if constr.sense == '>' or constr.sense == '>=':
+                model.addConstr(row >= rhs)
+            elif constr.sense == '=':
+                model.addConstr(row == rhs)
+            elif constr.sense == '<' or constr.sense == '<=':
+                model.addConstr(row <= rhs)
 
-            model.optimize()
+        model.optimize()
 
-            statistics = {'time': model.Runtime}
+        statistics = {'time': model.Runtime}
 
-            status_switcher = {
-                GRB.OPTIMAL: True,
-                GRB.INFEASIBLE: False,
-            }
-            return status_switcher.get(model.status), statistics, None
+        status_switcher = {
+            GRB.OPTIMAL: True,
+            GRB.INFEASIBLE: False,
+        }
+        return status_switcher.get(model.status), statistics, None
