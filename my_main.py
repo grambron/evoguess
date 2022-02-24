@@ -10,20 +10,17 @@ model.addCons(x + y <= 1)
 model2 = Model(sourceModel=model, threadsafe=True, origcopy=True)
 
 total_cons = model2.getConss()
-if len(total_cons) != 1:
-    raise Exception("size")
+assert len(total_cons) == 1
 
 constraint = total_cons[0]
 
 new_y = model.getVars()[1]
+assert new_y.name == 'Y'
+
 new_constraint = Expr()
-new_constraint += new_y * 2
+new_constraint += new_y * 1
 
-x2 = model2.addVar(vtype='B', name='X1')
-
-model2.addCons(x2 <= 1)
+model2.addCons(new_constraint <= 1)
 model2.delCons(constraint)
-
-print(len(model2.getConss()))
 
 model2.optimize()
