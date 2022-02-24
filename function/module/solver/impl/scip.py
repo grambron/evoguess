@@ -1,6 +1,6 @@
 from function.module.solver.solver import Solver
 from instance.typings.scip_ilp import ScipILPClause
-from pyscipopt.scip import Model
+from pyscipopt.scip import Model, Row, Expr
 
 
 class SCIP(Solver):
@@ -8,16 +8,33 @@ class SCIP(Solver):
     name = 'Solver: SCIP'
 
     def solve(self, clauses: ScipILPClause, assumptions, **kwargs):
-        model = Model(sourceModel=clauses.model, origcopy=True)
+        model = Model(sourceModel=clauses.model, threadsafe=True)
 
-        for assumption in assumptions:
-            if assumption > 0:
-                var = model.getVars()[assumption - 1]
-                model.addCons(var >= 1, f"backdoor_assumption_{var}")
-                model.addCons(var <= 1, f"backdoor_assumption_{var}_2")
+        for constr in model.getConss():
+            vars_in_constr_map = model.getValsLinear(constr)
+
+            rhs = model.getRhs(constr)
+            lhs = model.getLhs(constr)
+
+            bound = min(abs(rhs), abs(lhs))
+            new_constr = Expr()
+
+            for var_name in vars_in_constr_map.keys():
+                var_index = clauses.var_index_dict[var_name]
+
+                if var_index in assumptions:
+                    bound -= vars_in_constr_map[var_name]
+                elif -var_index not in assumptions:
+                    new_constr += clauses.var_dict[var_name] * vars_in_constr_map[var_name]
+
+            model.delCons(constr)
+
+            if rhs > lhs:
+                model.addCons(new_constr <= bound)
+            elif lhs > rhs:
+                model.addCons(new_constr >= bound)
             else:
-                var = model.getVars()[abs(assumption) - 1]
-                model.addCons(var <= 0, f"backdoor_assumption_{var}")
+                model.addCons(new_constr == bound)
 
         model.optimize()
 

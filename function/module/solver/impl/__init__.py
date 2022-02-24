@@ -1,10 +1,10 @@
 from . import pysat
 from .gurobi import Gurobi
 from .pysat import *
-# from .scip import SCIP
+from .scip import SCIP
 
 solvers = {
-    # SCIP.slug: SCIP,
+    SCIP.slug: SCIP,
     Gurobi.slug: Gurobi,
     Cadical.slug: Cadical,
     Glucose3.slug: Glucose3,
