@@ -15,12 +15,10 @@ class ScipILPClause:
     def __init__(self, model: Model):
         self.model = model
         self.var_index_dict = {}
-        self.var_dict = {}
 
         counter = 1
         for var in model.getVars():
             self.var_index_dict[var.name] = counter
-            self.var_dict[var.name] = var
             counter += 1
 
 

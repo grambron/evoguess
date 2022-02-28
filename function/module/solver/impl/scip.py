@@ -25,16 +25,27 @@ class SCIP(Solver):
                 if var_index in assumptions:
                     bound -= vars_in_constr_map[var_name]
                 elif -var_index not in assumptions:
-                    new_constr += clauses.var_dict[var_name] * vars_in_constr_map[var_name]
+                    assert model.getVars()[var_index - 1].name == clauses.model.getVars()[var_index - 1].name
+                    new_constr += model.getVars()[var_index - 1] * vars_in_constr_map[var_name]
+
+            if lhs != rhs:
+                if lhs == -1e20:
+                    model.addCons(new_constr <= bound)
+                elif rhs == 1e20:
+                    model.addCons(new_constr >= bound)
+                else:
+                    raise Exception("illegal sign in constraint")
+            else:
+                model.addCons(new_constr == bound)
 
             model.delCons(constr)
 
-            if rhs > lhs:
-                model.addCons(new_constr <= bound)
-            elif lhs > rhs:
-                model.addCons(new_constr >= bound)
-            else:
-                model.addCons(new_constr == bound)
+        model.presolve()
+
+        if model.getStatus() == "optimal":
+            return True, {'time': 0.0}, None
+        elif model.getStatus() == "infeasible":
+            return False, {'time': 0.0}, None
 
         model.optimize()
 

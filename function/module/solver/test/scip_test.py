@@ -41,7 +41,7 @@ class MyTestCase(unittest.TestCase):
         clauses = ScipILPClause(model)
 
         status, stats, _ = SCIP().solve(clauses=clauses, assumptions=assumptions)
-        self.assertEqual(status, False)
+        self.assertEqual(False, status)
 
 
 def initialize_base_clauses():
