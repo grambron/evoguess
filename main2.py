@@ -15,7 +15,7 @@ if __name__ == '__main__':
             'size': 8, 'elites': 2,
             'slug': 'iterable:elitism',
             'limit': {
-                'value': '00:00:10',
+                'value': '12:00:00',
                 'slug': 'limit:walltime',
             },
             'selection': {
@@ -35,16 +35,16 @@ if __name__ == '__main__':
         'instance': {
             'slug': 'ilp_instance',
             'ilp': {
-                'slug': 'gurobi_ilp',
-                'path': 'ilp/input.lp'
+                'slug': 'scip_ilp',
+                'path': 'ilp/seymour.mps'
             },
             'supbs': {
                 'slug': 'interval',
-                'start': 1, 'length': 9
+                'start': 1, 'length': 1372
             },
             'input_set': {
                 'slug': 'interval',
-                'start': 1, 'length': 9
+                'start': 1, 'length': 1372
             }
         },
         'method': {
@@ -60,7 +60,7 @@ if __name__ == '__main__':
         'function': {
             'slug': 'function:gad_ilp',
             'solver': {
-                'slug': 'solver:gurobi'
+                'slug': 'solver:scip'
             },
             'measure': {
                 'slug': 'measure:time'

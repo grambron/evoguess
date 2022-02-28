@@ -10,7 +10,7 @@ if __name__ == '__main__':
         solution_file.truncate()
         gurobi_file.truncate()
 
-    cnf = parse('input.txt')
+    cnf = parse('../input.lp')
     backdoor = parse_backdoor('backdoor.txt')
     model = GurobiModel(cnf, backdoor)
     model.resolve(GenerationMode.all,

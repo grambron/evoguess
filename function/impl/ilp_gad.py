@@ -76,8 +76,16 @@ class GuessAndDetermineILP(Function):
         if count == len(cases):
             time, value = time_sum, value_sum
         elif len(cases) > 0:
-            time = log2(float(time_sum) / len(cases)) + log2(count)
-            value = log2(float(value_sum) / len(cases)) + log2(count)
+            try:
+                time = log2(float(time_sum) / len(cases)) + log2(count)
+                value = log2(float(value_sum) / len(cases)) + log2(count)
+            except Exception as e:
+                print('===')
+                print(time_sum)
+                print(cases)
+                print(count)
+                print(e)
+                raise e
 
         return {
             'time': time,

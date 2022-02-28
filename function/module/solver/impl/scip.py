@@ -29,9 +29,9 @@ class SCIP(Solver):
                     new_constr += model.getVars()[var_index - 1] * vars_in_constr_map[var_name]
 
             if lhs != rhs:
-                if lhs == -1e20:
+                if lhs <= -1e20:
                     model.addCons(new_constr <= bound)
-                elif rhs == 1e20:
+                elif rhs >= 1e20:
                     model.addCons(new_constr >= bound)
                 else:
                     raise Exception("illegal sign in constraint")
@@ -43,9 +43,9 @@ class SCIP(Solver):
         model.presolve()
 
         if model.getStatus() == "optimal":
-            return True, {'time': 0.0}, None
+            return True, {'time': model.getSolvingTime()}, None
         elif model.getStatus() == "infeasible":
-            return False, {'time': 0.0}, None
+            return False, {'time': model.getSolvingTime()}, None
 
         model.optimize()
 
