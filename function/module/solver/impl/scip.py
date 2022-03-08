@@ -10,35 +10,14 @@ class SCIP(Solver):
     def solve(self, clauses: ScipILPClause, assumptions, **kwargs):
         model = Model(sourceModel=clauses.model, threadsafe=True)
 
-        for constr in model.getConss():
-            vars_in_constr_map = model.getValsLinear(constr)
+        for var_assumption in assumptions:
+            var_index = abs(var_assumption) - 1
+            variable = model.getVars()[var_index]
 
-            rhs = model.getRhs(constr)
-            lhs = model.getLhs(constr)
-
-            bound = min(abs(rhs), abs(lhs))
-            new_constr = Expr()
-
-            for var_name in vars_in_constr_map.keys():
-                var_index = clauses.var_index_dict[var_name]
-
-                if var_index in assumptions:
-                    bound -= vars_in_constr_map[var_name]
-                elif -var_index not in assumptions:
-                    assert model.getVars()[var_index - 1].name == clauses.model.getVars()[var_index - 1].name
-                    new_constr += model.getVars()[var_index - 1] * vars_in_constr_map[var_name]
-
-            if lhs != rhs:
-                if lhs <= -1e20:
-                    model.addCons(new_constr <= bound)
-                elif rhs >= 1e20:
-                    model.addCons(new_constr >= bound)
-                else:
-                    raise Exception("illegal sign in constraint")
+            if var_assumption > 0:
+                model.addCons(variable == 1)
             else:
-                model.addCons(new_constr == bound)
-
-            model.delCons(constr)
+                model.addCons(variable == 0)
 
         model.presolve()
 
