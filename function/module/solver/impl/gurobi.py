@@ -9,35 +9,22 @@ class Gurobi(Solver):
     name = 'Solver: Gurobi'
 
     def solve(self, clauses: GurobiILPClause, assumptions, **kwargs):
-        clauses.model.update()
         model = clauses.model.copy()
 
-        for constr in model.getConstrs():
-            row = model.getRow(constr)
-            row_copy = row.copy()
-            rhs = constr.RHS
-            model.remove(constr)
+        for var_assumption in assumptions:
+            var_index = abs(var_assumption) - 1
+            variable = model.getVars()[var_index]
 
-            # TODO: probable optimisation point
-            # old_vars =  list(map(lambda i: row.getVar(i), range(row.size())))
-            # coeffs = list(map(lambda i: row.getCoeff(i), range(row.size())))
+            if var_assumption > 0:
+                model.addConstr(variable == 1)
+            else:
+                model.addConstr(variable == 0)
 
-            for i in range(row_copy.size()):
-                var = row_copy.getVar(i)
-                var_index = clauses.var_dict[var.VarName]
-
-                if var_index in assumptions:
-                    rhs -= row_copy.getCoeff(i)
-                    row.remove(var)
-                elif -var_index in assumptions:
-                    row.remove(var)
-
-            if constr.sense == '>' or constr.sense == '>=':
-                model.addConstr(row >= rhs)
-            elif constr.sense == '=':
-                model.addConstr(row == rhs)
-            elif constr.sense == '<' or constr.sense == '<=':
-                model.addConstr(row <= rhs)
+        # try:
+        #     p = model.presolve()
+        #     print("status: ", p.status)
+        # except Exception as e:
+        #     pass
 
         model.optimize()
 
@@ -47,4 +34,5 @@ class Gurobi(Solver):
             GRB.OPTIMAL: True,
             GRB.INFEASIBLE: False,
         }
+
         return status_switcher.get(model.status), statistics, None
