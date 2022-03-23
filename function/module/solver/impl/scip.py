@@ -3,9 +3,12 @@ from instance.typings.scip_ilp import ScipILPClause
 from pyscipopt.scip import Model, Row, Expr
 
 
-class SCIP(Solver):
+class Scip(Solver):
     slug = 'solver:scip'
     name = 'Solver: SCIP'
+
+    def prototype(self, clauses):
+        return ScipWrapper(self, clauses)
 
     def solve(self, clauses: ScipILPClause, assumptions, **kwargs):
         model = Model(sourceModel=clauses.model, threadsafe=True)
@@ -36,3 +39,40 @@ class SCIP(Solver):
         }
 
         return status_switcher.get(model.getStatus()), statistics, None
+
+    def propagate(self, clauses: ScipILPClause, assumptions, **kwargs):
+        model = Model(sourceModel=clauses.model, threadsafe=True)
+
+        for var_assumption in assumptions:
+            var_index = abs(var_assumption) - 1
+            variable = model.getVars()[var_index]
+
+            if var_assumption > 0:
+                model.addCons(variable == 1)
+            else:
+                model.addCons(variable == 0)
+
+        model.presolve()
+
+        if model.getStatus() == "infeasible":
+            return True, {'time': model.getSolvingTime()}, model.getVars()
+        else:
+            return False, {'time': model.getSolvingTime()}, model.getVars()
+
+
+class ScipWrapper:
+
+    def __init__(self, solver, clauses):
+        self.solver = solver
+        self.clauses = clauses
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.solver:
+            self.solver.delete()
+            self.solver = None
+
+    def propagate(self, assumptions, **kwargs):
+        return self.solver.propagate(self.clauses, assumptions)

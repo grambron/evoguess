@@ -7,6 +7,7 @@ from pyscipopt.scip import Model
 from util.const import TEMPLATE_PATH
 
 ilp_clauses = {}
+ilp_max_literal = {}
 lock = threading.Lock()
 numeral = re.compile('^[-0-9]')
 
@@ -39,6 +40,8 @@ class ScipILP:
 
         ilp_clauses[self.path] = ScipILPClause(model)
 
+        ilp_max_literal[self.path] = len(model.getVars())
+
     def clauses(self):
         with lock:
             self._parse()
@@ -53,6 +56,11 @@ class ScipILP:
             'name': self.name,
             'path': self.path,
         }
+
+    def max_literal(self):
+        with lock:
+            self._parse()
+            return ilp_max_literal[self.path]
 
 
 __all__ = [
