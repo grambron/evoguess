@@ -25,9 +25,9 @@ class Scip(Solver):
         model.presolve()
 
         if model.getStatus() == "optimal":
-            return True, {'time': model.getSolvingTime()}, None
+            return True, {'time': model.getPresolvingTime()}, None
         elif model.getStatus() == "infeasible":
-            return False, {'time': model.getSolvingTime()}, None
+            return False, {'time': model.getPresolvingTime()}, None
 
         model.optimize()
 
@@ -55,9 +55,9 @@ class Scip(Solver):
         model.presolve()
 
         if model.getStatus() == "infeasible":
-            return True, {'time': model.getSolvingTime()}, model.getVars()
+            return False, {'time': model.getPresolvingTime()}
         else:
-            return False, {'time': model.getSolvingTime()}, model.getVars()
+            return True, {'time': model.getPresolvingTime()}
 
 
 class ScipWrapper:
@@ -71,7 +71,6 @@ class ScipWrapper:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.solver:
-            self.solver.delete()
             self.solver = None
 
     def propagate(self, assumptions, **kwargs):
