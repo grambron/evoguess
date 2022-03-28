@@ -6,12 +6,12 @@ from function.module.solver.impl import Scip
 from instance.typings.scip_ilp import ScipILPClause
 
 if __name__ == '__main__':
-    with open('backdoor', 'r') as backdoor_file, open('input.lp', 'r') as instance:
+    with open('backdoor', 'r') as backdoor_file:
         line = backdoor_file.readline()
         backdoor = list(map(int, line.split()))
 
         model = Model()
-        model.readProblem(instance)
+        model.readProblem('bnatt500.mps')
 
         start_time = datetime.now()
 
@@ -24,7 +24,7 @@ if __name__ == '__main__':
 
             status, stats = Scip().propagate(clauses=ScipILPClause(model), assumptions=assumptions)
 
-            if status != "optimal":
-                model.solve()
+            if status:
+                model.optimize()
 
         print("total time: ", datetime.now() - start_time)
