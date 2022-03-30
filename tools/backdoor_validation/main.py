@@ -41,6 +41,10 @@ if __name__ == '__main__':
 
         if status:
             sol_status, stats, _ = Scip().solve(clauses=ScipILPClause(model), assumptions=assumptions)
+
+            if sol_status:
+                break
+
             time_to_solve[stats['time']] = assumptions
 
     with open('solving_statistics', 'w') as solving_stats:
