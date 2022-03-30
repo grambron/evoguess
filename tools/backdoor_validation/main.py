@@ -5,26 +5,46 @@ from pyscipopt.scip import Model
 from function.module.solver.impl import Scip
 from instance.typings.scip_ilp import ScipILPClause
 
-if __name__ == '__main__':
+
+def initialize_model():
+    model.hideOutput()
+    model.readProblem('bnatt500.mps')
+
+    model_vars = model.getVars()
+
+    for var_index in backdoor:
+        model.chgVarBranchPriority(model_vars[var_index - 1], 1)
+
+
+def initialize_backdoor():
     with open('backdoor', 'r') as backdoor_file:
-        line = backdoor_file.readline()
-        backdoor = list(map(int, line.split()))
+        backdoor_line = backdoor_file.readline()
+    return list(map(int, backdoor_line.split()))
 
-        model = Model()
-        model.readProblem('bnatt500.mps')
 
-        start_time = datetime.now()
+if __name__ == '__main__':
+    backdoor = initialize_backdoor()
+    model = Model()
+    initialize_model()
 
-        for i in range(2 ** len(backdoor)):
-            assumptions = backdoor.copy()
+    time_to_solve = {}
+    start_time = datetime.now()
 
-            for j in range(len(assumptions)):
-                if i & 2 ** j != 0:
-                    assumptions[j] = -assumptions[j]
+    for i in range(2 ** len(backdoor)):
+        assumptions = backdoor.copy()
 
-            status, stats = Scip().propagate(clauses=ScipILPClause(model), assumptions=assumptions)
+        for j in range(len(assumptions)):
+            if i & 2 ** j != 0:
+                assumptions[j] = -assumptions[j]
 
-            if status:
-                model.optimize()
+        status, _ = Scip().propagate(clauses=ScipILPClause(model), assumptions=assumptions)
 
-        print("total time: ", datetime.now() - start_time)
+        if status:
+            sol_status, stats, _ = Scip().solve(clauses=ScipILPClause(model), assumptions=assumptions)
+            time_to_solve[stats['time']] = assumptions
+
+    with open('solving_statistics', 'w') as solving_stats:
+        solving_stats.write("len: " + str(len(time_to_solve)) + "\n")
+        solving_stats.write(str(time_to_solve))
+
+    print("total time: ", datetime.now() - start_time)

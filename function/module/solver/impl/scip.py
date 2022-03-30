@@ -11,7 +11,7 @@ class Scip(Solver):
         return ScipWrapper(self, clauses)
 
     def solve(self, clauses: ScipILPClause, assumptions, **kwargs):
-        model = Model(sourceModel=clauses.model, threadsafe=True)
+        model = Model(sourceModel=clauses.model, threadsafe=False)
 
         for var_assumption in assumptions:
             var_index = abs(var_assumption) - 1
@@ -41,7 +41,7 @@ class Scip(Solver):
         return status_switcher.get(model.getStatus()), statistics, None
 
     def propagate(self, clauses: ScipILPClause, assumptions, **kwargs):
-        model = Model(sourceModel=clauses.model, threadsafe=True)
+        model = Model(sourceModel=clauses.model, threadsafe=False)
 
         for var_assumption in assumptions:
             var_index = abs(var_assumption) - 1
