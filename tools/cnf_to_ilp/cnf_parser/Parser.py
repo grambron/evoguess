@@ -1,3 +1,5 @@
+from typing import List
+
 from tools.cnf_to_ilp.cnf.CnfModel import CnfModel
 from tools.cnf_to_ilp.cnf.Equation import Equation
 from tools.cnf_to_ilp.cnf.Literal import Literal
@@ -36,7 +38,7 @@ def parse(filename: str) -> CnfModel:
     return model
 
 
-def parse_backdoor(backdoor_file: str) -> list[str]:
+def parse_backdoor(backdoor_file: str) -> List[str]:
     with open(backdoor_file) as file:
         backdoor = file.readline().split()
 
