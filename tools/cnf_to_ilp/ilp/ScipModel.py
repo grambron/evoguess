@@ -15,8 +15,6 @@ class ScipModel:
         self.cnf_model: CnfModel = cnf_model
         self.variables = {}
 
-        self.model.setParam('OutputFlag', False)
-
         counter = 0
         for equation in cnf_model.equations:
             expr = 0
@@ -33,6 +31,8 @@ class ScipModel:
                     expr = expr + (1 - model_var)
             self.model.addCons(expr >= 1, f"constraint_{counter}")
             counter += 1
+
+        assert len(self.model.getVars()) == self.cnf_model.literals_count
 
     def measure_optimizing_time(self):
         start_time = datetime.now()
