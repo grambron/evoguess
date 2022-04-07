@@ -15,6 +15,8 @@ class ScipModel:
         self.cnf_model: CnfModel = cnf_model
         self.variables = {}
 
+        self.model.hideOutput()
+
         counter = 0
         for equation in cnf_model.equations:
             expr = 0
