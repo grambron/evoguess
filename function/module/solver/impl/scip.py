@@ -31,6 +31,7 @@ def solve_with_variable_substitution(clauses: ScipILPClause, assumptions):
 
         rhs = model.getRhs(constr)
         lhs = model.getLhs(constr)
+        double_inequity = (lhs != rhs) and (lhs > -1e20) and (rhs < 1e20)
         bound = min(abs(rhs), abs(lhs))
 
         new_constr = Expr()
@@ -39,7 +40,11 @@ def solve_with_variable_substitution(clauses: ScipILPClause, assumptions):
             var_index = clauses.var_index_dict[var_name]
 
             if var_index in assumptions:
-                bound -= vars_in_constr_map[var_name]
+                if not double_inequity:
+                    bound -= vars_in_constr_map[var_name]
+                else:
+                    rhs -= vars_in_constr_map[var_name]
+                    lhs -= vars_in_constr_map[var_name]
             elif -var_index not in assumptions:
                 assert model.getVars()[var_index - 1].name == clauses.model.getVars()[var_index - 1].name
                 new_constr += model.getVars()[var_index - 1] * vars_in_constr_map[var_name]
@@ -49,6 +54,8 @@ def solve_with_variable_substitution(clauses: ScipILPClause, assumptions):
                 model.addCons(new_constr <= bound)
             elif rhs >= 1e20:
                 model.addCons(new_constr >= bound)
+            elif double_inequity:
+                model.addCons((rhs >= new_constr) >= lhs)
             else:
                 raise Exception("illegal sign in constraint")
         else:
