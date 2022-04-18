@@ -1,7 +1,4 @@
 import argparse
-import sys
-
-sys.path.append('/mnt/tank/scratch/abadikova/evoguess-fw/evoguess')
 
 from datetime import datetime
 
