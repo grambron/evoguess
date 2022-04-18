@@ -14,6 +14,11 @@ numeral = re.compile('^[-0-9]')
 class ScipILPClause:
     def __init__(self, model: Model):
         self.model = model
+
+
+class ScipILPClauseForValidation:
+    def __init__(self, model: Model):
+        self.model = model
         self.var_index_dict = {}
 
         counter = 1
