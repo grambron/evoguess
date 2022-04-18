@@ -1,4 +1,7 @@
 import argparse
+import sys
+
+sys.path.append('/mnt/tank/scratch/abadikova/evoguess-fw/evoguess')
 
 from datetime import datetime
 
@@ -99,7 +102,7 @@ def solve_with_variable_substitution(clauses: ScipILPClauseForValidation, assump
         else:
             model.addCons(new_constr == bound)
 
-            model.delCons(constr)
+        model.delCons(constr)
 
     model.optimize()
 
