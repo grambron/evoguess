@@ -14,7 +14,7 @@ def parse_line(line) -> Equation:
         sign = not var.startswith("-")
         if not sign:
             abs_var = abs_var[1::]
-        variable = Literal(abs_var, sign)
+        variable = Literal(int(abs_var), sign)
         equation.add_variable(variable)
     return equation
 

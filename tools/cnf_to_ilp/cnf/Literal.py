@@ -1,7 +1,7 @@
 class Literal:
-    name: str
+    index: int
     sign: bool
 
-    def __init__(self, name: str, sign: bool):
-        self.name = name
+    def __init__(self, index: int, sign: bool):
+        self.index = index
         self.sign = sign
