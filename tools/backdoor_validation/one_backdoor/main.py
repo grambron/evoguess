@@ -32,10 +32,6 @@ def initialize_model(instance_format, file):
         new_model.readProblem(file)
 
     new_model.hideOutput()
-    model_vars = new_model.getVars()
-
-    for var_index in backdoor:
-        new_model.chgVarBranchPriority(model_vars[var_index - 1], 1)
 
     return new_model
 
@@ -137,7 +133,7 @@ if __name__ == '__main__':
             if sol_status:
                 obj_value = min(obj_value, current_obj)
 
-    with open('solving_statistics', 'w') as solving_stats:
+    with open('../solving_statistics', 'w') as solving_stats:
         solving_stats.write("len: " + str(len(time_to_solve)) + "\n")
         solving_stats.write(str(time_to_solve))
 
