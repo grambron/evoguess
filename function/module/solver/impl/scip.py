@@ -1,6 +1,6 @@
 from function.module.solver.solver import Solver
-from instance.typings.scip_ilp import ScipILPClause, ScipILPClauseForValidation
-from pyscipopt.scip import Model, Row, Expr
+from instance.typings.scip_ilp import ScipILPClause
+from src.pyscipopt.scip import Model
 
 
 def presolve_and_optimize(model):
@@ -44,24 +44,8 @@ class Scip(Solver):
 
         return presolve_and_optimize(model)
 
-    def propagate(self, clauses: ScipILPClause, assumptions, **kwargs):
-        model = Model(sourceModel=clauses.model, threadsafe=False)
-
-        for var_assumption in assumptions:
-            var_index = abs(var_assumption) - 1
-            variable = model.getVars()[var_index]
-
-            if var_assumption > 0:
-                model.addCons(variable == 1)
-            else:
-                model.addCons(variable == 0)
-
-        model.presolve()
-
-        if model.getStatus() == "infeasible":
-            return False, {'time': model.getPresolvingTime()}
-        else:
-            return True, {'time': model.getPresolvingTime()}
+    def propagate(self, model: Model, assumptions, **kwargs):
+        return model.propagate_by_presolve(assumptions)
 
 
 class ScipWrapper:
@@ -78,4 +62,4 @@ class ScipWrapper:
             self.solver = None
 
     def propagate(self, assumptions):
-        return self.solver.propagate(self.clauses, assumptions)
+        return self.solver.propagate(self.clauses.model, assumptions)

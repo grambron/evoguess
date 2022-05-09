@@ -1,10 +1,10 @@
 import itertools
 from datetime import datetime
+import sys
 
-from function.module.solver.impl import Scip
-from instance.typings.scip_ilp import ScipILPClause, ScipILPClauseForValidation
-from tools.backdoor_validation.one_backdoor.main import parse_arguments, initialize_model, \
-    solve_with_variable_substitution
+# sys.path.append('/mnt/tank/scratch/abadikova/evoguess-fw/evoguess')
+
+from tools.backdoor_validation.one_backdoor.main import parse_arguments, initialize_model
 
 
 def initialize_backdoors():
@@ -37,7 +37,7 @@ if __name__ == '__main__':
                 if i & 2 ** j != 0:
                     assumptions[j] = -assumptions[j]
 
-            status, _ = Scip().propagate(clauses=ScipILPClause(model), assumptions=assumptions)
+            status, _ = model.propagate_by_presolve(assumptions)
 
             if status:
                 assumptions_to_solve.append(assumptions)
@@ -48,8 +48,14 @@ if __name__ == '__main__':
         assumptions = set(cortege[0] + cortege[1])
         print(assumptions)
 
-        sol_status, stats, current_obj = solve_with_variable_substitution(clauses=ScipILPClauseForValidation(model),
-                                                                          assumptions=assumptions)
+        var_index_dict = {}
+
+        counter = 1
+        for var in model.getVars():
+            var_index_dict[var.name] = counter
+            counter += 1
+
+        sol_status, stats, current_obj = model.solve_with_variable_substitution(assumptions)
 
         if sol_status:
             obj_value = min(obj_value, current_obj)
