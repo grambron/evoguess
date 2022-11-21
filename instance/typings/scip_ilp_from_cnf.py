@@ -2,6 +2,8 @@ import os
 import re
 import threading
 
+from pyscipopt.scip import PY_SCIP_PARAMSETTING
+
 from instance.typings.scip_ilp import ScipILPClause
 from tools.cnf_to_ilp.cnf_parser.Parser import parse
 from tools.cnf_to_ilp.ilp.ScipModel import ScipModel
@@ -24,9 +26,13 @@ class ScipILPFromCnf:
             return
 
         cnf = parse(self.path)
-        scip_model = ScipModel(cnf)
+        scip_model = ScipModel(cnf).model
 
-        ilp_clauses[self.path] = ScipILPClause(scip_model.model)
+        scip_model.setPresolve(PY_SCIP_PARAMSETTING.AGGRESSIVE)
+        scip_model.presolve()
+        scip_model.setPresolve(PY_SCIP_PARAMSETTING.DEFAULT)
+
+        ilp_clauses[self.path] = ScipILPClause(scip_model)
 
     def clauses(self):
         with lock:
