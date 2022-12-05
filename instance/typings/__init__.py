@@ -6,7 +6,7 @@ from .scip_ilp_from_cnf import *
 
 types = {
     CNF.slug: CNF,
-    GurobiILP.slug: GurobiILP,
+    # GurobiILP.slug: GurobiILP,
     ScipILP.slug: ScipILP,
     ScipILPFromCnf.slug: ScipILPFromCnf,
     **variables.types

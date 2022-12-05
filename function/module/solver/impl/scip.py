@@ -1,5 +1,5 @@
 from function.module.solver.solver import Solver
-from instance.typings.scip_ilp import ScipILPClause, ScipILPClauseForValidation
+from instance.typings.scip_ilp import ScipILPClause
 from pyscipopt.scip import Model
 
 

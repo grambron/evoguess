@@ -28,6 +28,8 @@ class ScipILPFromCnf:
         cnf = parse(self.path)
         scip_model = ScipModel(cnf).model
 
+        scip_model.hideOutput()
+
         scip_model.setPresolve(PY_SCIP_PARAMSETTING.AGGRESSIVE)
         scip_model.presolve()
         scip_model.setPresolve(PY_SCIP_PARAMSETTING.DEFAULT)
